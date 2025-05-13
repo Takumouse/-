@@ -13,696 +13,208 @@ let lineChart = null;      // 線グラフのインスタンス
 function loadSalesData() {
     // インラインデータ（フォールバック用）
     const fallbackData = [
-      {
-        "id": 100,
-        "date": "2025-05-11",
-        "product": "Bread",
-        "category": "Food",
-        "region": "East",
-        "amount": 1367,
-        "quantity": 4,
-        "status": "保留中"
-      },
-      // ここに残りのデータを追加
-      // ...提供されたJSONデータをすべて貼り付ける
+        {
+            "id": 100,
+            "date": "2025-05-11",
+            "product": "Bread",
+            "category": "Food",
+            "region": "East",
+            "amount": 1367,
+            "quantity": 4,
+            "status": "保留中"
+        },
+        {
+            "id": 99,
+            "date": "2025-05-10",
+            "product": "Milk",
+            "category": "Food",
+            "region": "North",
+            "amount": 7196,
+            "quantity": 5,
+            "status": "完了"
+        },
+        {
+            "id": 98,
+            "date": "2025-05-09",
+            "product": "Headphones",
+            "category": "Electronics",
+            "region": "North",
+            "amount": 9761,
+            "quantity": 5,
+            "status": "保留中"
+        },
+        {
+            "id": 97,
+            "date": "2025-05-08",
+            "product": "Bread",
+            "category": "Food",
+            "region": "West",
+            "amount": 5806,
+            "quantity": 5,
+            "status": "完了"
+        },
+        {
+            "id": 96,
+            "date": "2025-05-07",
+            "product": "Headphones",
+            "category": "Electronics",
+            "region": "Central",
+            "amount": 5307,
+            "quantity": 6,
+            "status": "保留中"
+        },
+        {
+            "id": 95,
+            "date": "2025-05-06",
+            "product": "Lamp",
+            "category": "Home",
+            "region": "Central",
+            "amount": 4346,
+            "quantity": 4,
+            "status": "保留中"
+        },
+        {
+            "id": 94,
+            "date": "2025-05-05",
+            "product": "Novel",
+            "category": "Books",
+            "region": "Central",
+            "amount": 6225,
+            "quantity": 3,
+            "status": "キャンセル"
+        },
+        {
+            "id": 93,
+            "date": "2025-05-04",
+            "product": "Novel",
+            "category": "Books",
+            "region": "Central",
+            "amount": 1061,
+            "quantity": 5,
+            "status": "保留中"
+        },
+        {
+            "id": 92,
+            "date": "2025-05-03",
+            "product": "T-shirt",
+            "category": "Clothing",
+            "region": "South",
+            "amount": 2895,
+            "quantity": 2,
+            "status": "完了"
+        },
+        {
+            "id": 91,
+            "date": "2025-05-02",
+            "product": "Jeans",
+            "category": "Clothing",
+            "region": "South",
+            "amount": 8500,
+            "quantity": 3,
+            "status": "完了"
+        },
+        {
+            "id": 90,
+            "date": "2025-05-01",
+            "product": "Sofa",
+            "category": "Home",
+            "region": "East",
+            "amount": 95000,
+            "quantity": 1,
+            "status": "保留中"
+        },
+        {
+            "id": 89,
+            "date": "2025-04-30",
+            "product": "Table",
+            "category": "Home",
+            "region": "North",
+            "amount": 65000,
+            "quantity": 1,
+            "status": "完了"
+        },
+        {
+            "id": 88,
+            "date": "2025-04-29",
+            "product": "Laptop",
+            "category": "Electronics",
+            "region": "West",
+            "amount": 125000,
+            "quantity": 1,
+            "status": "完了"
+        },
+        {
+            "id": 87,
+            "date": "2025-04-28",
+            "product": "Dress",
+            "category": "Clothing",
+            "region": "South",
+            "amount": 12500,
+            "quantity": 2,
+            "status": "完了"
+        },
+        {
+            "id": 86,
+            "date": "2025-04-27",
+            "product": "Cookbook",
+            "category": "Books",
+            "region": "North",
+            "amount": 3200,
+            "quantity": 4,
+            "status": "保留中"
+        },
+        {
+            "id": 85,
+            "date": "2025-04-26",
+            "product": "Coffee",
+            "category": "Food",
+            "region": "Central",
+            "amount": 1850,
+            "quantity": 3,
+            "status": "完了"
+        }
     ];
 
-    // fetch APIを使用してJSONファイルを読み込む
-    fetch('data/sales.json')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('JSONデータ読み込み成功:', data);
-            salesData = data;
-            initializeData();
-        })
-        .catch(error => {
-            console.warn('JSONファイルの読み込みに失敗しました。フォールバックデータを使用します。', error);
-            console.log('エラーの詳細:', error.message);
-            
-            // フォールバックデータを使用
+    // 複数のパスを試す
+    const possiblePaths = [
+        'data/sales-data.json', // 最初のパス
+        'data/sales.json',      // 2番目のパス
+        './data/sales-data.json', // 相対パス1
+        './data/sales.json'      // 相対パス2
+    ];
+
+    // パスを順番に試す関数
+    function tryLoadingFromPath(pathIndex) {
+        if (pathIndex >= possiblePaths.length) {
+            // すべてのパスを試して失敗した場合、フォールバックを使用
+            console.warn('全てのパスでJSONファイルの読み込みに失敗しました。フォールバックデータを使用します。');
             salesData = fallbackData;
             initializeData();
-        });
-}
-
-// データの初期化と画面表示
-function initializeData() {
-    // フィルターのカテゴリーリストを生成
-    populateCategoryFilter();
-    
-    // 初期データとして全データをセット
-    filteredData = [...salesData];
-    
-    // 初期表示のためのデータ更新
-    updateSummary();
-    renderTable();
-    
-    // 初期チャートの描画（カテゴリー別）
-    updateDualCharts('category');
-    
-    // カテゴリー選択タブを選択状態に
-    document.querySelector('.chart-tab[data-chart-type="category"]').classList.add('active');
-}
-
-// カテゴリーフィルターの生成
-function populateCategoryFilter() {
-    const categorySelect = document.getElementById('category');
-    
-    // カテゴリーの一覧を抽出（重複を除去）
-    const categories = [...new Set(salesData.map(item => item.category))];
-    
-    // ドロップダウンのオプションを生成
-    categories.forEach(category => {
-        const option = document.createElement('option');
-        option.value = category;
-        option.textContent = category;
-        categorySelect.appendChild(option);
-    });
-}
-
-// ページ読み込み時にデータをロード
-document.addEventListener('DOMContentLoaded', () => {
-    loadSalesData();
-    
-    // イベントリスナーの設定
-    setupEventListeners();
-});
-
-// イベントリスナーのセットアップ
-function setupEventListeners() {
-    // フィルター適用ボタン
-    document.getElementById('apply-filters').addEventListener('click', applyFilters);
-    
-    // フィルターリセットボタン
-    document.getElementById('reset-filters').addEventListener('click', resetFilters);
-    
-    // ページネーションボタン
-    document.getElementById('prev-page').addEventListener('click', () => {
-        if (currentPage > 1) {
-            currentPage--;
-            renderTable();
+            return;
         }
-    });
-    
-    document.getElementById('next-page').addEventListener('click', () => {
-        const maxPage = Math.ceil(filteredData.length / rowsPerPage);
-        if (currentPage < maxPage) {
-            currentPage++;
-            renderTable();
-        }
-    });
-    
-    // テーブルヘッダーのソート
-    document.querySelectorAll('th[data-sort]').forEach(th => {
-        th.addEventListener('click', () => {
-            const column = th.getAttribute('data-sort');
-            sortData(column);
-        });
-    });
-    
-    // チャートタブの切り替え
-    document.querySelectorAll('.chart-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            // アクティブクラスの制御
-            document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            
-            const chartType = tab.getAttribute('data-chart-type');
-            
-            // チャートの表示/非表示を切り替え
-            if (chartType === 'trend') {
-                document.getElementById('dual-charts').classList.add('hidden');
-                document.getElementById('trend-chart').classList.remove('hidden');
-                updateTrendChart();
-            } else {
-                document.getElementById('dual-charts').classList.remove('hidden');
-                document.getElementById('trend-chart').classList.add('hidden');
-                updateDualCharts(chartType);
-            }
-        });
-    });
-    
-    // テーマ切り替えボタン
-    document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
-}
 
-// フィルターの適用
-function applyFilters() {
-    const searchTerm = document.getElementById('search').value.toLowerCase();
-    const startDate = document.getElementById('startDate').value;
-    const endDate = document.getElementById('endDate').value;
-    const category = document.getElementById('category').value;
-    const status = document.getElementById('status').value;
-    
-    filteredData = salesData.filter(item => {
-        // 検索語でのフィルタリング（製品名または地域）
-        const searchMatch = 
-            searchTerm === '' || 
-            item.product.toLowerCase().includes(searchTerm) || 
-            item.region.toLowerCase().includes(searchTerm);
+        const path = possiblePaths[pathIndex];
+        console.log(`パス ${path} からのJSONファイル読み込みを試行中...`);
         
-        // 日付範囲でのフィルタリング
-        const dateMatch = 
-            (startDate === '' || item.date >= startDate) && 
-            (endDate === '' || item.date <= endDate);
-        
-        // カテゴリーでのフィルタリング
-        const categoryMatch = category === '' || item.category === category;
-        
-        // ステータスでのフィルタリング
-        const statusMatch = status === '' || item.status === status;
-        
-        return searchMatch && dateMatch && categoryMatch && statusMatch;
-    });
-    
-    // ページを1に戻す
-    currentPage = 1;
-    
-    // データの更新表示
-    updateSummary();
-    renderTable();
-    
-    // 現在アクティブなチャートを更新
-    const activeChartType = document.querySelector('.chart-tab.active').getAttribute('data-chart-type');
-    if (activeChartType === 'trend') {
-        updateTrendChart();
-    } else {
-        updateDualCharts(activeChartType);
-    }
-}
-
-// フィルターのリセット
-function resetFilters() {
-    document.getElementById('search').value = '';
-    document.getElementById('startDate').value = '';
-    document.getElementById('endDate').value = '';
-    document.getElementById('category').value = '';
-    document.getElementById('status').value = '';
-    
-    filteredData = [...salesData];
-    currentPage = 1;
-    
-    updateSummary();
-    renderTable();
-    
-    // 現在アクティブなチャートを更新
-    const activeChartType = document.querySelector('.chart-tab.active').getAttribute('data-chart-type');
-    if (activeChartType === 'trend') {
-        updateTrendChart();
-    } else {
-        updateDualCharts(activeChartType);
-    }
-}
-
-// テーマの切り替え
-function toggleTheme() {
-    const currentTheme = document.documentElement.getAttribute('data-theme');
-    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-    
-    document.documentElement.setAttribute('data-theme', newTheme);
-    
-    // ローカルストレージに保存
-    localStorage.setItem('theme', newTheme);
-    
-    // チャートの再描画（テーマに合わせて色を変更）
-    const activeChartType = document.querySelector('.chart-tab.active').getAttribute('data-chart-type');
-    if (activeChartType === 'trend') {
-        updateTrendChart();
-    } else {
-        updateDualCharts(activeChartType);
-    }
-}
-
-// ストレージからテーマを復元
-function restoreTheme() {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-        document.documentElement.setAttribute('data-theme', savedTheme);
-    }
-}
-
-// ページ読み込み時にテーマを復元
-restoreTheme();
-// テーブルの描画
-function renderTable() {
-    const tableBody = document.querySelector('#sales-table tbody');
-    tableBody.innerHTML = '';
-    
-    // ページ計算
-    const start = (currentPage - 1) * rowsPerPage;
-    const end = start + rowsPerPage;
-    const pagedData = filteredData.slice(start, end);
-    
-    // データの表示
-    if (pagedData.length === 0) {
-        const row = document.createElement('tr');
-        const cell = document.createElement('td');
-        cell.textContent = 'データが見つかりません';
-        cell.colSpan = 8;
-        cell.style.textAlign = 'center';
-        row.appendChild(cell);
-        tableBody.appendChild(row);
-    } else {
-        pagedData.forEach(item => {
-            const row = document.createElement('tr');
-            
-            // ステータスタグのクラス
-            let statusClass = '';
-            switch (item.status) {
-                case '完了':
-                    statusClass = 'status-completed';
-                    break;
-                case '保留中':
-                    statusClass = 'status-pending';
-                    break;
-                case 'キャンセル':
-                    statusClass = 'status-cancelled';
-                    break;
-                default:
-                    statusClass = '';
-            }
-            
-            // 各セルの作成
-            row.innerHTML = `
-                <td>order-${item.id}</td>
-                <td>${formatDate(item.date)}</td>
-                <td>${item.product}</td>
-                <td>${item.category}</td>
-                <td>${item.region}</td>
-                <td>¥${item.amount.toLocaleString()}</td>
-                <td>${item.quantity}</td>
-                <td><span class="status-tag ${statusClass}">${item.status}</span></td>
-            `;
-            
-            tableBody.appendChild(row);
-        });
-    }
-    
-    // ページネーション情報の更新
-    const maxPage = Math.ceil(filteredData.length / rowsPerPage) || 1;
-    document.getElementById('page-info').textContent = `${currentPage} / ${maxPage}`;
-    
-    // ページネーションボタンの有効/無効設定
-    document.getElementById('prev-page').disabled = currentPage <= 1;
-    document.getElementById('next-page').disabled = currentPage >= maxPage;
-}
-
-// サマリーの更新
-function updateSummary() {
-    // 総売上
-    const totalSales = filteredData.reduce((sum, item) => sum + item.amount, 0);
-    document.getElementById('total-sales').textContent = `¥${totalSales.toLocaleString()}`;
-    
-    // 平均注文額
-    const avgOrder = filteredData.length ? Math.round(totalSales / filteredData.length) : 0;
-    document.getElementById('avg-order').textContent = `¥${avgOrder.toLocaleString()}`;
-    
-    // 総販売数
-    const totalQuantity = filteredData.reduce((sum, item) => sum + item.quantity, 0);
-    document.getElementById('total-quantity').textContent = totalQuantity.toLocaleString();
-    
-    // 完了注文数
-    const completedOrders = filteredData.filter(item => item.status === '完了').length;
-    document.getElementById('completed-orders').textContent = completedOrders.toLocaleString();
-}
-
-// デュアルチャート（円グラフと棒グラフ）の更新
-function updateDualCharts(dataType) {
-    // 円グラフのコンテキスト
-    const pieCtx = document.getElementById('pie-chart').getContext('2d');
-    // 棒グラフのコンテキスト
-    const barCtx = document.getElementById('bar-chart').getContext('2d');
-    
-    // 既存のチャートがあれば破棄
-    if (pieChart) {
-        pieChart.destroy();
-    }
-    if (barChart) {
-        barChart.destroy();
-    }
-    
-    let chartData;
-    
-    // データタイプに応じたデータの準備
-    switch (dataType) {
-        case 'category':
-            chartData = prepareCategoryData();
-            break;
-        case 'region':
-            chartData = prepareRegionData();
-            break;
-    }
-
-    // テーマの取得
-    const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
-    const textColor = isDarkMode ? '#f1f1f1' : '#333333';
-    
-    // 円グラフの作成
-    pieChart = new Chart(pieCtx, {
-        type: 'pie',
-        data: {
-            labels: chartData.labels,
-            datasets: [{
-                data: chartData.values,
-                backgroundColor: chartData.colors,
-                hoverOffset: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'right',
-                    labels: {
-                        color: textColor
-                    }
-                },
-                title: {
-                    display: true,
-                    text: dataType === 'category' ? 'カテゴリー別売上比率' : '地域別売上比率',
-                    color: textColor
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const label = context.label || '';
-                            const value = context.raw || 0;
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = Math.round((value / total) * 100);
-                            return `${label}: ¥${value.toLocaleString()} (${percentage}%)`;
-                        }
-                    }
+        fetch(path)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-            }
-        }
-    });
-    
-    // 棒グラフの作成
-    barChart = new Chart(barCtx, {
-        type: 'bar',
-        data: {
-            labels: chartData.labels,
-            datasets: [{
-                label: '売上',
-                data: chartData.values,
-                backgroundColor: chartData.colors,
-                borderColor: chartData.colors.map(color => color.replace('0.7', '1')),
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                title: {
-                    display: true,
-                    text: dataType === 'category' ? 'カテゴリー別売上額' : '地域別売上額',
-                    color: textColor
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const label = context.dataset.label || '';
-                            const value = context.raw || 0;
-                            const total = chartData.values.reduce((a, b) => a + b, 0);
-                            const percentage = Math.round((value / total) * 100);
-                            return `${label}: ¥${value.toLocaleString()} (${percentage}%)`;
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: '売上（円）',
-                        color: textColor
-                    },
-                    ticks: {
-                        color: textColor
-                    },
-                    grid: {
-                        color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-                    }
-                },
-                x: {
-                    ticks: {
-                        color: textColor
-                    },
-                    grid: {
-                        color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-                    }
-                }
-            }
-        }
-    });
-}
-
-// トレンドチャートの更新
-function updateTrendChart() {
-    const lineCtx = document.getElementById('line-chart').getContext('2d');
-    
-    // 既存のチャートがあれば破棄
-    if (lineChart) {
-        lineChart.destroy();
+                return response.json();
+            })
+            .then(data => {
+                console.log(`パス ${path} からJSONデータ読み込み成功:`, data.length, '件のレコード');
+                salesData = data;
+                initializeData();
+            })
+            .catch(error => {
+                console.warn(`パス ${path} からのJSONファイル読み込みに失敗しました:`, error);
+                // 次のパスを試す
+                tryLoadingFromPath(pathIndex + 1);
+            });
     }
-    
-    const trendData = prepareTrendData();
-    
-    // テーマの取得
-    const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
-    const textColor = isDarkMode ? '#f1f1f1' : '#333333';
-    
-    // 線グラフの作成
-    lineChart = new Chart(lineCtx, {
-        type: 'line',
-        data: {
-            labels: trendData.labels,
-            datasets: [{
-                label: '売上',
-                data: trendData.values,
-                fill: false,
-                borderColor: '#0088FE', // メインカラーと統一（青）
-                backgroundColor: 'rgba(0, 136, 254, 0.1)', // 薄い青で背景
-                tension: 0.1,
-                borderWidth: 3
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                title: {
-                    display: true,
-                    text: '日別売上トレンド',
-                    font: {
-                        size: 16
-                    },
-                    color: textColor
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: '売上（円）',
-                        color: textColor
-                    },
-                    ticks: {
-                        color: textColor
-                    },
-                    grid: {
-                        color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-                    }
-                },
-                x: {
-                    title: {
-                        display: true,
-                        text: '日付',
-                        color: textColor
-                    },
-                    ticks: {
-                        color: textColor
-                    },
-                    grid: {
-                        color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-                    }
-                }
-            }
-        }
-    });
-}
 
-// カテゴリー別データの準備
-function prepareCategoryData() {
-    // カテゴリーごとの合計を計算
-    const categoryTotals = {};
-    
-    filteredData.forEach(item => {
-        if (!categoryTotals[item.category]) {
-            categoryTotals[item.category] = 0;
-        }
-        categoryTotals[item.category] += item.amount;
-    });
-    
-    const labels = Object.keys(categoryTotals);
-    const values = Object.values(categoryTotals);
-    
-    // 指定された固定の色
-    const categoryColors = [
-        '#0088FE', // 青
-        '#8884D8', // 紫
-        '#FF8042', // オレンジ
-        '#FFBB28', // 黄色
-        '#00C49F'  // ターコイズ
-    ];
-    
-    // カテゴリーの数に合わせて色を割り当て（必要に応じて繰り返し使用）
-    const colors = labels.map((_, index) => categoryColors[index % categoryColors.length]);
-    
-    return {
-        labels: labels,
-        values: values,
-        colors: colors
-    };
-}
-
-// 地域別データの準備
-function prepareRegionData() {
-    // 地域ごとの合計を計算
-    const regionTotals = {};
-    
-    filteredData.forEach(item => {
-        if (!regionTotals[item.region]) {
-            regionTotals[item.region] = 0;
-        }
-        regionTotals[item.region] += item.amount;
-    });
-    
-    const labels = Object.keys(regionTotals);
-    const values = Object.values(regionTotals);
-    
-    // 地域用の固定色セット（カテゴリーとは少し異なる色味）
-    const regionColors = [
-        '#2196F3', // 青
-        '#673AB7', // 紫
-        '#FF5722', // オレンジ
-        '#FFC107', // 黄色
-        '#009688', // ティール
-        '#E91E63', // ピンク
-        '#3F51B5', // インディゴ
-        '#4CAF50', // 緑
-        '#9C27B0'  // 濃い紫
-    ];
-    
-    // 地域の数に合わせて色を割り当て（必要に応じて繰り返し使用）
-    const colors = labels.map((_, index) => regionColors[index % regionColors.length]);
-    
-    return {
-        labels: labels,
-        values: values,
-        colors: colors
-    };
-}
-
-// トレンドデータの準備（日別）
-function prepareTrendData() {
-    // 日付ごとの合計を計算
-    const dateTotals = {};
-    
-    // 日付でソート
-    const sortedData = [...filteredData].sort((a, b) => new Date(a.date) - new Date(b.date));
-    
-    sortedData.forEach(item => {
-        if (!dateTotals[item.date]) {
-            dateTotals[item.date] = 0;
-        }
-        dateTotals[item.date] += item.amount;
-    });
-    
-    const dateLabels = Object.keys(dateTotals).sort();
-    const values = dateLabels.map(date => dateTotals[date]);
-    
-    // フォーマットされた日付ラベル
-    const formattedLabels = dateLabels.map(date => formatDate(date));
-    
-    return {
-        labels: formattedLabels,
-        values: values
-    };
-}
-
-// データのソート
-function sortData(column) {
-    // 前回と同じカラムならソート方向を反転
-    if (sortColumn === column) {
-        sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-    } else {
-        sortColumn = column;
-        sortDirection = 'asc';
-    }
-    
-    // ソートアイコンの設定
-    document.querySelectorAll('.sort-icon').forEach(icon => {
-        icon.textContent = '';
-    });
-    
-    const currentIcon = document.querySelector(`th[data-sort="${column}"] .sort-icon`);
-    currentIcon.textContent = sortDirection === 'asc' ? '↑' : '↓';
-    
-    // データのソート
-    filteredData.sort((a, b) => {
-        let valueA = a[column];
-        let valueB = b[column];
-        
-        // 数値の場合
-        if (typeof valueA === 'number') {
-            return sortDirection === 'asc' ? valueA - valueB : valueB - valueA;
-        }
-        
-        // 日付の場合
-        if (column === 'date') {
-            return sortDirection === 'asc' 
-                ? new Date(valueA) - new Date(valueB) 
-                : new Date(valueB) - new Date(valueA);
-        }
-        
-        // 文字列の場合
-        valueA = String(valueA).toLowerCase();
-        valueB = String(valueB).toLowerCase();
-        
-        if (valueA < valueB) {
-            return sortDirection === 'asc' ? -1 : 1;
-        }
-        if (valueA > valueB) {
-            return sortDirection === 'asc' ? 1 : -1;
-        }
-        return 0;
-    });
-    
-    // テーブルの再描画
-    renderTable();
-}
-
-// 日付のフォーマット
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}/${month}/${day}`;
+    // 最初のパスから試行開始
+    tryLoadingFromPath(0);
 }
